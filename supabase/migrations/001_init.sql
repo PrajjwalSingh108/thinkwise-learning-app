@@ -322,10 +322,25 @@ declare
   v_correct boolean;
 begin
   if v_user is null then raise exception 'Sign in first.'; end if;
-  select gc.group_id,q into v_group,v_question
-    from public.group_challenges gc join public.questions q on q.id=gc.question_id
-    where gc.id=p_challenge_id and q.is_active=true;
-  if v_group is null or not public.is_group_member(v_group) then raise exception 'Challenge not found or you are not a group member.'; end if;
+select gc.group_id
+into v_group
+from public.group_challenges gc
+join public.questions q on q.id=gc.question_id
+where gc.id=p_challenge_id and q.is_active=true;
+
+if v_group is null or not public.is_group_member(v_group) then
+  raise exception 'Challenge not found or you are not a group member.';
+end if;
+
+select q.*
+into v_question
+from public.group_challenges gc
+join public.questions q on q.id=gc.question_id
+where gc.id=p_challenge_id and q.is_active=true;
+
+if not found then
+  raise exception 'Challenge question not found.';
+end if;
   if p_selected_index<0 or p_selected_index>=jsonb_array_length(v_question.options) then raise exception 'Invalid answer selection.'; end if;
   select correct_index,explanation into v_key from private.question_keys where question_id=v_question.id;
   if not found then raise exception 'Answer key is unavailable.'; end if;
