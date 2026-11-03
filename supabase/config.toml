@@ -1,0 +1,4 @@
+project_id = "thinkwise-product"
+
+[functions.study-buddy]
+verify_jwt = true
